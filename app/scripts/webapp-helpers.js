@@ -122,7 +122,10 @@ var webappHelpers = (function () {
 
     var basil;
 
-    var spinner = new Spinner(settings.spinner);
+    var spinner;
+    if (typeof Spinner !== 'undefined') {
+        spinner = new Spinner(settings.spinner);
+    }
 
 
 
@@ -793,7 +796,9 @@ var reader = function (files, callback, options) {
     var dfd = new $.Deferred();
     var n = 0;
 
-    spinner.addJob(dfd);
+    if (spinner) {
+        spinner.addJob(dfd);
+    }
 
     options = $.extend(true, {}, {
         format: 'text',

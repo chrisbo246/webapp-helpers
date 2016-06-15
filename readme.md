@@ -1,6 +1,6 @@
 # Webapp helpers [![Build Status](https://secure.travis-ci.org/chrisbo246/webapp-helpers.svg?branch=master)](http://travis-ci.org/chrisbo246/webapp-helpers) [![Coverage Status](https://coveralls.io/repos/chrisbo246/webapp-helpers/badge.png?branch=master)](https://coveralls.io/r/chrisbo246/webapp-helpers?branch=master)
 
-Common JS and CSS helpers.
+Web application common JS and CSS helpers.
 
 ## Features
 
@@ -24,7 +24,6 @@ Insert the **webapp-helpers.js** in your index.html
 Edit your main.scss and insert **webapp-helpers.scss** just after Bootstrap.
 
 ```
-@import "bootstrap";
 @import "app/styles/webapp-helpers";
 ```
 
