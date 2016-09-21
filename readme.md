@@ -6,6 +6,7 @@ Common JS and CSS for web applications.
 
 - Load Google fonts asynchronously (+ Material design icons).
 - Try to define user language and populate the associated input.
+- Back to top link.
 - Smooth scroll when user click internal links.
 - Hide URL hash when user click internal links.
 - Save input values to a data attribute for live reset.

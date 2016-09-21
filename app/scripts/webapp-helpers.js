@@ -60,6 +60,9 @@ var webappHelpers = (function () {
         smoothScroll: {
             linkSelector: 'a[href*="#"]'
         },
+        backToTop: {
+            linkSelector: 'a[href="#top"]'
+        },
         // https://mixitup.kunkalabs.com/
         mixitup: {
             selector: '#disabled_priorities, #faq_list'
@@ -221,6 +224,30 @@ var webappHelpers = (function () {
                 }
             }
         });
+
+    };
+
+
+
+    /**
+    * Back to top link
+    * @public
+    */
+    var backToTop = function () {
+
+        var $links = $(settings.backToTop.linkSelector);
+        if ($links) {
+            $(window).on('resize', function () {
+                if (($(window).height() + 100) < $(document).height()) {
+                    $links.removeClass('hidden');
+                } else {
+                    $links.addClass('hidden');
+                }
+            }).trigger('resize');
+            $links.on('click', function () {
+                $('html, body').animate({scrollTop: 0}, 'slow');
+            });
+        }
 
     };
 
@@ -889,6 +916,9 @@ var init = function (options) {
 
         // Add a disabled class to unsuported field types
         disableUnsupported();
+
+        // Back to top Link
+        backToTop();
 
         // Save input values to a data attribute and watch the "live-reset-all" button
         if (settings.inputReset) {
