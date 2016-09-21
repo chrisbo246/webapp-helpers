@@ -40,6 +40,8 @@ Edit your main.scss and import **webapp-helpers.scss**.
 
 You can eventually customize the default settings to change some selectors or disable some functionalities.
 
+<!--
+
 ## Development
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
@@ -77,7 +79,6 @@ gulp build
 
 Then upload the **dist** directory content to your web server.
 
-<!--
 
 ## Contributing
 
