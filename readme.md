@@ -1,13 +1,22 @@
-# Webapp helpers [![Build Status](https://secure.travis-ci.org/chrisbo246/webapp-helpers.svg?branch=master)](http://travis-ci.org/chrisbo246/webapp-helpers) [![Coverage Status](https://coveralls.io/repos/chrisbo246/webapp-helpers/badge.png?branch=master)](https://coveralls.io/r/chrisbo246/webapp-helpers?branch=master)
+# Webapp helpers
 
-Web application common JS and CSS helpers.
+Common JS and CSS for web applications.
 
 ## Features
 
+- Load Google fonts asynchronously (+ Material design icons).
+- Try to define user language and populate the associated input.
+- Smooth scroll when user click internal links.
+- Hide URL hash when user click internal links.
+- Save input values to a data attribute for live reset.
+- Make form fields persistent (require Basil.js).
+- Watch the reset button to clear cookies / local storage.
+- Add a .disabled class to unsupported field types.
+- Add a simple parallax function.
+- Load the Google Adsense library then add a class allowing to unhide ad containers.
+- Show a lot of debug information in console including some  plugins (Garlic, Parsley, Mixitup, i18next, jQuery UI sortable).
 
-## Getting Started
-
-### Installing
+## Install
 
 Download with Bower.
 
@@ -15,17 +24,21 @@ Download with Bower.
 bower install chrisbo246/webapp-helpers
 ```
 
-Insert the **webapp-helpers.js** in your index.html
+Load **webapp-helpers.js** with a script tag in your main .html.
 
 ```
 <script src="/bower_components/webapp-helpers/dist/scripts/webapp-helpers.js"></script>
 ```
 
-Edit your main.scss and insert **webapp-helpers.scss** just after Bootstrap.
+Edit your main.scss and import **webapp-helpers.scss**.
 
 ```
 @import "app/styles/webapp-helpers";
 ```
+
+## Usage
+
+You can eventually customize the default settings to change some selectors or disable some functionalities.
 
 ## Development
 

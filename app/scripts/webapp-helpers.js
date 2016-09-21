@@ -57,8 +57,8 @@ var webappHelpers = (function () {
         parallax: {
             speedDataAttribute: 'layer-speed'
         },
-        scrollTo: {
-            toggleSelector: '.scroll'
+        smoothScroll: {
+            linkSelector: 'a[href*="#"]'
         },
         // https://mixitup.kunkalabs.com/
         mixitup: {
@@ -74,9 +74,6 @@ var webappHelpers = (function () {
         // https://harvesthq.github.io/chosen/
         chosen: {
             events: 'chosen:updated chosen:maxselected'
-        },
-        bootstrapSwitch: {
-            events: ' switchChange.bootstrapSwitch'
         },
         // https://jqueryui.com/sortable/
         sortable: {
@@ -164,733 +161,658 @@ var webappHelpers = (function () {
             }
         });
 
-        // Initialize ads
-        /*$ads.each(function (i, ad) {
-        var $ad = $(ad);
-        (adsbygoogle = window.adsbygoogle || []).push({});
-        console.log('#' + $ad.attr('id') + ' ad initialised with attributs ', $ad.data());
-    });*/
-
-    // Initialize hidden ads when a pane is opened for the first time
-    //bootstrapModule.oneShownHiddenTab(selector, function (paneId) {
-    //    insertAdsenseAds(paneId);
-    //});
-    //insertAdsInHiddenPanes(selector, settings.adsense);
-
-};
+    };
 
 
 
-/**
-* Load the Google Adsense library and add a adsbygoogle-status-done class to the html tag
-* @public
-*/
-var adsense = function () {
+    /**
+    * Load the Google Adsense library and add a adsbygoogle-status-done class to the html tag
+    * @public
+    */
+    var adsense = function () {
 
-    $.getScript(protocol + '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js', function () {
-        console.log('Google Adsense library loaded');
-        $('html').addClass('adsbygoogle-status-done');
+        $.getScript(protocol + '//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js', function () {
+            console.log('Google Adsense library loaded');
+            $('html').addClass('adsbygoogle-status-done');
 
-        /*$(window).on('load', function () {
-        if (callback) {
-        callback(selector, insertAdsenseAds(selector));
-    } else {
-    insertAdsenseAds(selector)
-}
-var $ads = $('.adsbygoogle').filter('[data-adsbygoogle-status="done"]');
-if ($ads.length) {
-$('html').addClass('adsbygoogle-status-done');
-} else {
-console.warn('Ad is not initialized');
-}
-});*/
+        });
 
-});
-
-};
+    };
 
 
 
-/**
-* Parallax
-* @public
-*/
-var parallax = function () {
+    /**
+    * Parallax
+    * @public
+    */
+    var parallax = function () {
 
-    $(function () {
-        var $window = $(window);
-        $('[data-' + settings.parallax.speedDataAttribute + ']').each(function () {
-            var $scroll = $(this);
-            $window.scroll(function () {
-                var yPos = -($window.scrollTop() / $scroll.data(settings.parallax.speedDataAttribute));
-                var coords = '50% ' + yPos + 'px';
-                $scroll.css({backgroundPosition: coords});
+        $(function () {
+            var $window = $(window);
+            $('[data-' + settings.parallax.speedDataAttribute + ']').each(function () {
+                var $scroll = $(this);
+                $window.scroll(function () {
+                    var yPos = -($window.scrollTop() / $scroll.data(settings.parallax.speedDataAttribute));
+                    var coords = '50% ' + yPos + 'px';
+                    $scroll.css({backgroundPosition: coords});
+                });
             });
         });
-    });
 
-};
-
+    };
 
 
-/**
-* Scroll-to links
-* @public
-*/
-var scrollTo = function (options) {
 
-    $.extend(true, settings.scrollTo, options);
+    /**
+    * Smooth scroll when user click internal links
+    * @public
+    */
+    var smoothScroll = function () {
 
-    $(function () {
-        $(settings.scrollTo.toggleSelector).click(function () {
-            $.scrollTo(this.hash, 1500, {easing: 'swing'});
-            return false;
+        $(settings.smoothScroll.linkSelector).filter('[href*="#"]:not([href="#"]):not([data-toggle])').click(function() {
+            if (location.pathname.replace(/^\//,'') === this.pathname.replace(/^\//,'') && location.hostname === this.hostname) {
+                var target = $(this.hash);
+                target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+                if (target.length) {
+                    $('html, body').animate({
+                        scrollTop: target.offset().top
+                    }, 1000);
+                    return false;
+                }
+            }
         });
-    });
 
-};
-
+    };
 
 
-/**
-* Reset cookies and local storage
-* @private
-*/
-var clearLocalStorage = function () {
 
-    if (document.cookie) {
-        var cookies = document.cookie.split(';');
-        cookies.forEach(function (cookie) {
-            document.cookie = cookie.split('=')[0]
-            + '=; username=; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+    /**
+    * Reset cookies and local storage
+    * @private
+    */
+    var clearLocalStorage = function () {
+
+        if (document.cookie) {
+            var cookies = document.cookie.split(';');
+            cookies.forEach(function (cookie) {
+                document.cookie = cookie.split('=')[0]
+                + '=; username=; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+            });
+        }
+        if (localStorage) {
+            localStorage.clear();
+        }
+        if ($().garlic) {
+            $(settings.garlic.fieldsSelector).garlic('destroy');
+        }
+        if (basil) {
+            basil.reset();
+        }
+    };
+
+
+
+    /**
+    * Get input value according to type
+    * @public
+    * @param {Object} input - Input DOM
+    * @return {string} Input type
+    */
+    var getInputType = function (input) {
+
+        var inputType;
+
+        var $input = $(input);
+        if ($input) {
+
+            inputType = $input.attr('type');
+            if (!inputType || inputType === 'undefined') {
+                inputType = $input.prop('tagName').toLowerCase();
+            }
+
+        }
+
+        return inputType;
+
+    };
+
+
+
+    /**
+    * Get input value according to type
+    * @public
+    * @param {Object} input - Input DOM
+    * @return {String|number|boolean} Input value
+    */
+    var getInputValue = function (input) {
+
+        var value;
+
+        var $input = $(input);
+        if ($input) {
+
+            var inputType = getInputType($input);
+
+            if ($.inArray(inputType, ['radio', 'checkbox']) !== -1) {
+                value = $input.prop('checked');
+                if (value && $input.attr('value')) {
+                    value = $input.attr('value');
+                }
+            } else if (inputType === 'file') {
+                value = $input.prop('files');
+            } else if ($.inArray(inputType, ['text', 'password', 'select', 'textarea', 'hidden',
+            'color', 'date', 'datetime', 'datetime-local', 'email', 'month', 'number', 'range',
+            'search', 'tel', 'time', 'url', 'week']) !== -1) {
+                value = $input.val();
+            } else {
+                // 'image' , 'button', 'reset', 'submit' , etc...
+                value = $input.html();
+            }
+
+        }
+
+        return value;
+
+    };
+
+
+
+    /**
+    * Set input value according to type
+    * @public
+    * @param {Object} input - Input DOM
+    * @param {String|number|boolean} [value] - Input value
+    * @param {Boolean} [trigger] - If false, do not trigger change
+    */
+    var setInputValue = function (input, value, trigger) {
+
+        var $input = $(input);
+        if ($input) {
+
+            var inputType = getInputType($input);
+
+            // If value is an array, use the first element
+            if ($.isArray(value) && inputType !== 'textarea') {
+                value = value[0] || null;
+            }
+
+            if ($.inArray(inputType, ['radio', 'checkbox']) !== -1) {
+                //if (value === true || value === false) {
+                $input.prop('checked', value);
+                //} else {
+                //    $input.val(value);
+                //    $input.prop('checked', (value !== null) ? true : false);
+                //}
+            } else if (inputType === 'file') {
+                if ($.type(value) === 'FileList') {
+                    $input.attr('files', value);
+                }
+            } else if (inputType === 'textarea') {
+                if ($.isArray(value)) {
+                    value = value.join('\n');
+                }
+                $input.val(value);
+            } else if ($.inArray(inputType, ['text', 'password', 'select', 'hidden',
+            'color', 'date', 'datetime', 'datetime-local', 'email', 'month', 'number', 'range',
+            'search', 'tel', 'time', 'url', 'week']) !== -1) {
+                $input.val(value);
+            } else {
+                $input.html(value);
+            }
+
+            if (trigger !== false) {
+                $input.trigger('change');
+            }
+
+        }
+
+    };
+
+
+
+    /**
+    * Data persistence inputs
+    * @public
+    */
+    var storeInputChanges = function () {
+
+        if (!basil) {
+            if (typeof Basil === 'function') {
+                basil = new window.Basil(settings.basil);
+            } else {
+                return false;
+            }
+        }
+
+        var $form, $input, value, id;
+
+        $(settings.garlic.formsSelector).each(function () {
+
+            $form = $(this);
+            $form.find(':input').not(':button, [type="submit"], [type="reset"]').filter('[id]').each(function () {
+                $input = $(this);
+
+                // Restore value if a stored value exists
+                id = $input.attr('id');
+                value = basil.get(id);
+                if (value !== null) {
+                    setInputValue($input, value, false);
+                    console.log('#' + id + ' value restored', value);
+                }
+
+                // Store changes
+                $input.on('change', function (e) {
+                    var input = e.target;
+                    value = getInputValue(input);
+                    id = input.id;
+                    basil.set(id, value);
+                    console.log('#' + id + ' value stored', value);
+                });
+
+            });
         });
-    }
-    if (localStorage) {
-        localStorage.clear();
-    }
-    if ($().garlic) {
-        $(settings.garlic.fieldsSelector).garlic('destroy');
-    }
-    if (basil) {
-        basil.reset();
-    }
-};
+
+    };
 
 
 
-/**
-* Get input value according to type
-* @public
-* @param {Object} input - Input DOM
-* @return {string} Input type
-*/
-var getInputType = function (input) {
+    /**
+    * Save inputs value to the data-default-value attribut
+    * @public
+    * @param {String} [selector="body"] - Form or block selector
+    */
+    var fixInputValues = function (selector) {
 
-    var inputType;
-
-    var $input = $(input);
-    if ($input) {
-
-        inputType = $input.attr('type');
-        if (!inputType || inputType === 'undefined') {
-            inputType = $input.prop('tagName').toLowerCase();
-        }
-
-    }
-
-    return inputType;
-
-};
-
-
-
-/**
-* Get input value according to type
-* @public
-* @param {Object} input - Input DOM
-* @return {String|number|boolean} Input value
-*/
-var getInputValue = function (input) {
-
-    var value;
-
-    var $input = $(input);
-    if ($input) {
-
-        var inputType = getInputType($input);
-
-        if ($.inArray(inputType, ['radio', 'checkbox']) !== -1) {
-            value = $input.prop('checked');
-            if (value && $input.attr('value')) {
-                value = $input.attr('value');
-            }
-        } else if (inputType === 'file') {
-            value = $input.prop('files');
-        } else if ($.inArray(inputType, ['text', 'password', 'select', 'textarea', 'hidden',
-        'color', 'date', 'datetime', 'datetime-local', 'email', 'month', 'number', 'range',
-        'search', 'tel', 'time', 'url', 'week']) !== -1) {
-            value = $input.val();
-        } else {
-            // 'image' , 'button', 'reset', 'submit' , etc...
-            value = $input.html();
-        }
-
-        /*if (inputType === 'checkbox' || inputType) === 'radio') {
-        value = (input.checked);
-    } else if (inputType === 'file') {
-    value = input.files;
-} else {
-value = input.value;
-}*/
-
-}
-
-return value;
-
-};
-
-
-
-/**
-* Set input value according to type
-* @public
-* @param {Object} input - Input DOM
-* @param {String|number|boolean} [value] - Input value
-* @param {Boolean} [trigger] - If false, do not trigger change
-*/
-var setInputValue = function (input, value, trigger) {
-
-    var $input = $(input);
-    if ($input) {
-
-        var inputType = getInputType($input);
-
-        // If value is an array, use the first element
-        if ($.isArray(value) && inputType !== 'textarea') {
-            value = value[0] || null;
-        }
-
-        if ($.inArray(inputType, ['radio', 'checkbox']) !== -1) {
-            //if (value === true || value === false) {
-            $input.prop('checked', value);
-            //} else {
-            //    $input.val(value);
-            //    $input.prop('checked', (value !== null) ? true : false);
-            //}
-        } else if (inputType === 'file') {
-            if ($.type(value) === 'FileList') {
-                $input.attr('files', value);
-            }
-        } else if (inputType === 'textarea') {
-            if ($.isArray(value)) {
-                value = value.join('\n');
-            }
-            $input.val(value);
-        } else if ($.inArray(inputType, ['text', 'password', 'select', 'hidden',
-        'color', 'date', 'datetime', 'datetime-local', 'email', 'month', 'number', 'range',
-        'search', 'tel', 'time', 'url', 'week']) !== -1) {
-            $input.val(value);
-        } else {
-            $input.html(value);
-        }
-
-        if (trigger !== false) {
-            $input.trigger('change');
-        }
-
-    }
-
-};
-
-
-
-/**
-* Data persistence inputs
-* @public
-*/
-var storeInputChanges = function () {
-
-    if (!basil) {
-        if (typeof Basil === 'function') {
-            basil = new window.Basil(settings.basil);
-        } else {
+        if (!settings.inputReset.defaultAttribut) {
             return false;
         }
-    }
 
-    var $form, $input, value, id;
+        if (!selector) {
+            selector = settings.dataReset.formsSelector;
+        }
 
-    $(settings.garlic.formsSelector).each(function () {
+        var $input, value;
 
-        $form = $(this);
-        $form.find(':input').not(':button, [type="submit"], [type="reset"]').filter('[id]').each(function () {
+        $(selector).find(':input')
+        .not(':file, :button, [type="submit"], [type="reset"]')
+        .each(function () {
             $input = $(this);
-
-            // Restore value if a stored value exists
-            id = $input.attr('id');
-            value = basil.get(id);
-            if (value !== null) {
-                setInputValue($input, value, false);
-                console.log('#' + id + ' value restored', value);
-            }
-
-            // Store changes
-            $input.on('change', function (e) {
-                var input = e.target;
-                value = getInputValue(input);
-                id = input.id;
-                basil.set(id, value);
-                console.log('#' + id + ' value stored', value);
-            });
-
+            value = getInputValue(this);
+            $input.attr('data-' + settings.inputReset.defaultAttribut, value);
         });
-    });
 
-};
-
-
-
-/**
-* Save inputs value to the data-default-value attribut
-* @public
-* @param {String} [selector="body"] - Form or block selector
-*/
-var fixInputValues = function (selector) {
-
-    if (!settings.inputReset.defaultAttribut) {
-        return false;
-    }
-
-    if (!selector) {
-        selector = settings.dataReset.formsSelector;
-    }
-
-    var $input, value;
-
-    $(selector).find(':input')
-    .not(':file, :button, [type="submit"], [type="reset"]')
-    .each(function () {
-        $input = $(this);
-        value = getInputValue(this);
-        $input.attr('data-' + settings.inputReset.defaultAttribut, value);
-    });
-
-};
+    };
 
 
 
-/**
-* Reset inputs value using the data-default-value attribut
-* @public
-* @param {String} [selector="body"] - Form or block selector
-*/
-var resetInputValues = function (selector) {
+    /**
+    * Reset inputs value using the data-default-value attribut
+    * @public
+    * @param {String} [selector="body"] - Form or block selector
+    */
+    var resetInputValues = function (selector) {
 
-    var $input, id, value;
+        var $input, id, value;
 
-    if (!settings.inputReset.defaultAttribut) {
-        return false;
-    }
-
-    if (!selector) {
-        selector = settings.inputReset.formsSelector;
-    }
-
-    $(selector).find(':input').filter('[data-' + settings.inputReset.defaultAttribut + ']').each(function () {
-
-        $input = $(this);
-        id = $input.attr('id');
-        value = $input.data(settings.inputReset.defaultAttribut);
-
-        if (id) {
-            if (basil) {
-                basil.remove(id);
-            }
-            setInputValue(this, value);
+        if (!settings.inputReset.defaultAttribut) {
+            return false;
         }
 
-    });
+        if (!selector) {
+            selector = settings.inputReset.formsSelector;
+        }
 
-};
+        $(selector).find(':input').filter('[data-' + settings.inputReset.defaultAttribut + ']').each(function () {
+
+            $input = $(this);
+            id = $input.attr('id');
+            value = $input.data(settings.inputReset.defaultAttribut);
+
+            if (id) {
+                if (basil) {
+                    basil.remove(id);
+                }
+                setInputValue(this, value);
+            }
+
+        });
+
+    };
 
 
 
-/**
-* Reset cookies and local storage
-* Display a warning alert when user click the button, then reset cookies and local storage and reload
-* @public
-*/
-var watchResetDataButton = function () {
+    /**
+    * Reset cookies and local storage
+    * Display a warning alert when user click the button, then reset cookies and local storage and reload
+    * @public
+    */
+    var watchResetDataButton = function () {
 
-    $(settings.dataReset.toggleSelector).click(function () {
-        if (swal) {
-            swal(settings.swal.resetData, function (isConfirm) {
-                if (isConfirm) {
-                    clearLocalStorage();
-                    location.reload();
+        $(settings.dataReset.toggleSelector).click(function () {
+            if (swal) {
+                swal(settings.swal.resetData, function (isConfirm) {
+                    if (isConfirm) {
+                        clearLocalStorage();
+                        location.reload();
+                    }
+                });
+            } else {
+                clearLocalStorage();
+                location.reload();
+            }
+        });
+
+    };
+
+
+
+    /**
+    * Watch input reset button
+    * @public
+    */
+    var watchInputResetButton = function () {
+
+        $(settings.inputReset.toggleSelector).click(function () {
+            resetInputValues();
+            if (swal) {
+                swal(settings.swal.inputReset);
+            }
+        });
+
+    };
+
+
+
+    /**
+    * Load Google fonts asynchronously
+    * @see https://github.com/typekit/webfontloader
+    * @public
+    * @param {Object} settings - See defaults
+    */
+    var loadWebFonts = function (options) {
+
+        $.extend(true, settings.googleFonts, options);
+
+        // WebFontConfig must be defined globally
+        if (!window.WebFontConfig) {
+            if (settings.webFontLoader.config) {
+                window.WebFontConfig = {};
+                $.extend(true, window.WebFontConfig, settings.webFontLoader.config);
+            } else {
+                //console.warn('Global variable WebFontConfig is not defined');
+                return false;
+            }
+        }
+
+        (function (d) {
+            // Hide material design icons until font was loaded
+            //toogleMaterialDesignIconVisibility('hide');
+            // Append the font loader script to the body
+            var wf = d.createElement('script'), s = d.scripts[0];
+            wf.src = 'https://ajax.googleapis.com/ajax/libs/webfont/' + settings.webFontLoader.version + '/webfont.js';
+            s.parentNode.insertBefore(wf, s);
+        })(document);
+
+    };
+
+
+
+    /**
+    * Disable most logs
+    * @public
+    */
+    var hideLogs = function () {
+
+        console.log = function () {};
+        console.time = function () {};
+        console.timeEnd = function () {};
+
+        settings.disabledLogs.forEach(function (element) {
+            console[element] = function () {};
+        });
+
+    };
+
+
+
+    /**
+    * Print some global logs or hide them for production
+    * @public
+    * @param {Object} settings - See defaults
+    */
+    var debug = function () {
+
+        if (!settings.debug) {
+            hideLogs();
+            $('.debug-only').hide();
+            return false;
+        } else {
+            $('.debug-only').show();
+            console.log('Debug', settings.debug);
+        }
+
+        // All inputs
+        if (settings.input.events) {
+
+            var events = settings.input.events;
+            if ($().chosen) { events = events + settings.chosen.events; }
+
+            $(':input').on(events, function (e) {
+                var strings = [];
+                strings.push('"' + e.type + '" event fired on "' + e.target.tagName + '" element');
+                if (e.target.type) { strings.push('[type="' + e.target.type + '"]'); }
+                if (e.target.id) { strings.push('[id="' + e.target.id + '"]'); }
+                if (e.target.name) { strings.push('[name="' + e.target.name + '"]'); }
+                if (e.type === 'input' || e.type === 'change') {
+                    strings.push('value="' + e.target.value + '"');
+                    if (e.target.type === 'checkbox' || e.target.type === 'radio') { strings.push('checked="' + e.target.checked + '"'); }
+                }
+                console.log(strings.join(' '), e);
+            });
+        }
+
+        // DOM load events
+        console.time('jQuery is ready');
+        console.time('HTML is loaded and DOM is ready');
+        console.time('Images, frames and objects are loaded');
+        $(function () {
+            console.timeEnd('jQuery is ready');
+        });
+        $(document).ready(function () {
+            console.timeEnd('HTML is loaded and DOM is ready');
+        });
+        $(window).on('load', function () {
+            console.timeEnd('Images, frames and objects are loaded');
+        });
+
+        // Infos
+        console.log('window', window);
+        console.log('document', document);
+        console.log('document.domain', document.domain);
+        console.log('document.URL', document.URL);
+        console.log('location', location);
+        console.log('navigator', navigator);
+        //console.log('window.location', window.location);
+        //console.log('document.location', document.location);
+
+        // jQuery UI sortable events
+        if ($().sortable && settings.sortable.events) {
+            // @param event, ui
+            $('.ui-sortable').on(settings.sortable.events, function (event) {
+                console.log('#' + $(this).attr('id') + ' event '
+                + event.type + '(' + $(this).sortable('toArray').length + ')');
+            });
+        }
+
+        // mixitup events
+        if ($().mixitup && settings.mixitup.selector) {
+            $(settings.mixitup.selector).on('mixLoad mixStart mixEnd mixFail mixBusy', function (event, state) {
+                console.log('mixItUp ' + event.type + ': ' + state.totalShow + ' elements match the current filter');
+            });
+        }
+
+        // Garlic
+        if ($().garlic && settings.garlic.fieldsSelector) {
+            $(settings.garlic.selector).garlic({
+                onRetrieve: function (elem, retrievedValue) {
+                    console.log('Garlic retrieved for'
+                    + ' ' + ((elem.attr('id')) ? 'id="#' + elem.attr('id') + '"' : '')
+                    + ' ' + ((elem.attr('name')) ? 'name="#' + elem.attr('name') + '"' : '')
+                    , retrievedValue);
+                },
+                onPersist: function (elem, storedValue) {
+                    console.log('Garlic persisted value for'
+                    + ' ' + ((elem.attr('id')) ? 'id="#' + elem.attr('id') + '"' : '')
+                    + ' ' + ((elem.attr('name')) ? 'name="#' + elem.attr('name') + '"' : '')
+                    , storedValue);
                 }
             });
-        } else {
-            clearLocalStorage();
-            location.reload();
         }
-    });
 
-};
-
-
-
-/**
-* Watch input reset button
-* @public
-*/
-var watchInputResetButton = function () {
-
-    $(settings.inputReset.toggleSelector).click(function () {
-        resetInputValues();
-        if (swal) {
-            swal(settings.swal.inputReset);
+        // Parsley form validation
+        if ($().parsley) {
+            $.each(['form:init', 'form:validate', 'form:success', 'form:error', 'form:validated', 'form:submit', 'field:init', 'field:validate', 'field:success', 'field:error', 'field:validated'], function (i, eventType) {
+                window.Parsley.on(eventType, function() {
+                    //console.log('Parsley ' + eventType, this.$element);
+                    console.log('Parsley ' + eventType, '#' + this.$element.attr('id'));
+                });
+            });
         }
-    });
 
-};
+        // i18next
+        if (typeof i18next === 'function' && settings.i18next.instance) {
 
+            settings.i18next.instance.useLocalStorage = false;
+            settings.i18next.instance.localStorageExpirationTime = 0;
 
+            settings.i18next.instance
+            .on('initialized', function () {
+                console.log('i18next initialized');
+            })
+            .on('loaded', function () {
+                console.log('i18next loaded');
+            })
+            .on('failedLoading', function (lng, ns, msg) {
+                console.warn('i18next failed loading: ' + msg + ' language: ' + lng + ' ns: ' + ns);
+            });
+        }
 
-/**
-* Show or hide material icons
-* Hide icons while Google fonts are no loaded to avoid class name display
-* @private
-* @param {Object} settings - See defaults
-*/
-/*var toogleMaterialDesignIconVisibility = function (state) {
-
-if (settings.webFontLoader.config.google && settings.webFontLoader.config.google.length) {
-$.each(settings.webFontLoader.config.google, function (i, fontName) {
-if (fontName.match(/Material[+ ]Icons/gi)) {
-var $icons = $(settings.materialDesign.iconsSelector);
-if (state) {
-$icons.show();
-console.log('Material design icons diplayed');
-} else {
-$icons.hide();
-console.log('Material design icons hidden');
-}
-return false;
-}
-});
-}
-
-};*/
+    };
 
 
 
-/**
-* Load Google fonts asynchronously
-* @see https://github.com/typekit/webfontloader
-* @public
-* @param {Object} settings - See defaults
-*/
-var loadWebFonts = function (options) {
+    /**
+    * Load data from input type="file"
+    * @public
+    * @param {Object} files - File list returned by the input
+    * @param {Function} callback - Function to apply to each file
+    * @param {Object} [options] - File type definition
+    * @return {Object} Deferred
+    */
+    var reader = function (files, callback, options) {
 
-    $.extend(true, settings.googleFonts, options);
-
-    // WebFontConfig must be defined globally
-    if (!window.WebFontConfig) {
-        if (settings.webFontLoader.config) {
-            window.WebFontConfig = {};
-            $.extend(true, window.WebFontConfig, settings.webFontLoader.config);
-        } else {
-            //console.warn('Global variable WebFontConfig is not defined');
+        if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
             return false;
         }
-    }
 
-    (function (d) {
-        // Hide material design icons until font was loaded
-        //toogleMaterialDesignIconVisibility('hide');
-        // Append the font loader script to the body
-        var wf = d.createElement('script'), s = d.scripts[0];
-        wf.src = 'https://ajax.googleapis.com/ajax/libs/webfont/' + settings.webFontLoader.version + '/webfont.js';
-        s.parentNode.insertBefore(wf, s);
-    })(document);
+        var dfd = new $.Deferred();
+        var n = 0;
 
-};
-
-
-
-/**
-* Disable most logs
-* @public
-*/
-var hideLogs = function () {
-
-    console.log = function () {};
-    console.time = function () {};
-    console.timeEnd = function () {};
-
-    settings.disabledLogs.forEach(function (element) {
-        console[element] = function () {};
-    });
-
-};
-
-
-
-/**
-* Print some global logs or hide them for production
-* @public
-* @param {Object} settings - See defaults
-*/
-var debug = function () {
-
-    if (!settings.debug) {
-        hideLogs();
-        $('.debug-only').hide();
-        return false;
-    } else {
-        $('.debug-only').show();
-        console.log('Debug', settings.debug);
-    }
-
-    // All inputs
-    if (settings.input.events) {
-
-        var events = settings.input.events;
-        if ($().chosen) { events = events + settings.chosen.events; }
-        if ($().bootstrapSwitch) { events = events + settings.bootstrapSwitch.events; }
-
-        $(':input').on(events, function (e) {
-            var strings = [];
-            strings.push('"' + e.type + '" event fired on "' + e.target.tagName + '" element');
-            if (e.target.type) { strings.push('[type="' + e.target.type + '"]'); }
-            if (e.target.id) { strings.push('[id="' + e.target.id + '"]'); }
-            if (e.target.name) { strings.push('[name="' + e.target.name + '"]'); }
-            if (e.type === 'input' || e.type === 'change') {
-                strings.push('value="' + e.target.value + '"');
-                if (e.target.type === 'checkbox' || e.target.type === 'radio') { strings.push('checked="' + e.target.checked + '"'); }
-            }
-            console.log(strings.join(' '), e);
-        });
-    }
-
-    // DOM load events
-    console.time('jQuery is ready');
-    console.time('HTML is loaded and DOM is ready');
-    console.time('Images, frames and objects are loaded');
-    $(function () {
-        console.timeEnd('jQuery is ready');
-    });
-    $(document).ready(function () {
-        console.timeEnd('HTML is loaded and DOM is ready');
-    });
-    $(window).on('load', function () {
-        console.timeEnd('Images, frames and objects are loaded');
-    });
-
-    // Infos
-    console.log('window', window);
-    console.log('document', document);
-    console.log('document.domain', document.domain);
-    console.log('document.URL', document.URL);
-    console.log('location', location);
-    console.log('navigator', navigator);
-    //console.log('window.location', window.location);
-    //console.log('document.location', document.location);
-
-    // jQuery UI sortable events
-    if ($().sortable && settings.sortable.events) {
-        // @param event, ui
-        $('.ui-sortable').on(settings.sortable.events, function (event) {
-            console.log('#' + $(this).attr('id') + ' event '
-            + event.type + '(' + $(this).sortable('toArray').length + ')');
-        });
-    }
-
-    // mixitup events
-    if ($().mixitup && settings.mixitup.selector) {
-        $(settings.mixitup.selector).on('mixLoad mixStart mixEnd mixFail mixBusy', function (event, state) {
-            console.log('mixItUp ' + event.type + ': ' + state.totalShow + ' elements match the current filter');
-        });
-    }
-
-    // Garlic
-    if ($().garlic && settings.garlic.fieldsSelector) {
-        $(settings.garlic.selector).garlic({
-            onRetrieve: function (elem, retrievedValue) {
-                console.log('Garlic retrieved for'
-                + ' ' + ((elem.attr('id')) ? 'id="#' + elem.attr('id') + '"' : '')
-                + ' ' + ((elem.attr('name')) ? 'name="#' + elem.attr('name') + '"' : '')
-                , retrievedValue);
-            },
-            onPersist: function (elem, storedValue) {
-                console.log('Garlic persisted value for'
-                + ' ' + ((elem.attr('id')) ? 'id="#' + elem.attr('id') + '"' : '')
-                + ' ' + ((elem.attr('name')) ? 'name="#' + elem.attr('name') + '"' : '')
-                , storedValue);
-            }
-        });
-    }
-
-    // Parsley form validation
-    if ($().parsley) {
-        $.each(['form:init', 'form:validate', 'form:success', 'form:error', 'form:validated', 'form:submit', 'field:init', 'field:validate', 'field:success', 'field:error', 'field:validated'], function (i, eventType) {
-            window.Parsley.on(eventType, function() {
-                //console.log('Parsley ' + eventType, this.$element);
-                console.log('Parsley ' + eventType, '#' + this.$element.attr('id'));
-            });
-        });
-    }
-
-    // i18next
-    if (typeof i18next === 'function' && settings.i18next.instance) {
-
-        settings.i18next.instance.useLocalStorage = false;
-        settings.i18next.instance.localStorageExpirationTime = 0;
-
-        settings.i18next.instance
-        .on('initialized', function () {
-            console.log('i18next initialized');
-        })
-        .on('loaded', function () {
-            console.log('i18next loaded');
-        })
-        .on('failedLoading', function (lng, ns, msg) {
-            console.warn('i18next failed loading: ' + msg + ' language: ' + lng + ' ns: ' + ns);
-        });
-    }
-
-    // BootstrapSwitch checkbox events
-    /*if ($().bootstrapSwitch && settings.bootstrapSwitch.events) {
-    $(':checkbox')
-    .on(settings.bootstrapSwitch.events, function (event, state) {
-    console.log('bootstrapSwitch #' + $(this).attr('id') + '=' + this.checked);
-});
-}*/
-
-// Chosen select events
-/*if ($().chosen) {
-$(':select').on('chosen:updated', function () {
-console.log('Chosen input #' + $(this).attr('id') + '=' + $(this).val());
-});
-}*/
-
-};
-
-
-
-/**
-* Load data from input type="file"
-* @public
-* @param {Object} files - File list returned by the input
-* @param {Function} callback - Function to apply to each file
-* @param {Object} [options] - File type definition
-* @return {Object} Deferred
-*/
-var reader = function (files, callback, options) {
-
-    if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
-        return false;
-    }
-
-    var dfd = new $.Deferred();
-    var n = 0;
-
-    if (spinner) {
-        spinner.addJob(dfd);
-    }
-
-    options = $.extend(true, {}, {
-        format: 'text',
-        encoding: 'UTF-8',
-        cancelSelector: null
-    }, options);
-
-    $.each(files, function (i, f) {
-        var fileReader = new FileReader();
-
-        if (options.format === 'buffer') {
-            fileReader.readAsArrayBuffer(f, options.encoding);
-        } else if (options.format === 'binary') {
-            fileReader.readAsBinaryString(f, options.encoding);
-        } else if (options.format === 'data') {
-            fileReader.readAsDataURL(f, options.encoding);
-        } else {
-            fileReader.readAsText(f, options.encoding);
+        if (spinner) {
+            spinner.addJob(dfd);
         }
 
-        //fileReader.error
-        //fileReader.readyState
-        //fileReader.result
+        options = $.extend(true, {}, {
+            format: 'text',
+            encoding: 'UTF-8',
+            cancelSelector: null
+        }, options);
 
-        fileReader.onload = function (e) {
-            console.log('File load', e);
-            callback(e.target.result);
-        };
-        fileReader.onloadstart = function () {
+        $.each(files, function (i, f) {
+            var fileReader = new FileReader();
 
-        };
-        fileReader.onloadend = function () {
-            console.log((i + 1) + '/' + files.length + ' file loaded');
-            n = n + 1;
-            if (n === files.length) {
-                console.log('Last file loaded');
-                dfd.resolve();
+            if (options.format === 'buffer') {
+                fileReader.readAsArrayBuffer(f, options.encoding);
+            } else if (options.format === 'binary') {
+                fileReader.readAsBinaryString(f, options.encoding);
+            } else if (options.format === 'data') {
+                fileReader.readAsDataURL(f, options.encoding);
+            } else {
+                fileReader.readAsText(f, options.encoding);
             }
-        };
-        fileReader.onerror = function () {
-            swal({title: 'Oups!', text: 'An error occured while trying to read your file.', type: 'warning'});
-        };
 
-        if (options.cancelSelector) {
-            $(options.cancelSelector).on('click', function () {
-                fileReader.abort();
-            });
+            //fileReader.error
+            //fileReader.readyState
+            //fileReader.result
+
+            fileReader.onload = function (e) {
+                console.log('File load', e);
+                callback(e.target.result);
+            };
+            fileReader.onloadstart = function () {
+
+            };
+            fileReader.onloadend = function () {
+                console.log((i + 1) + '/' + files.length + ' file loaded');
+                n = n + 1;
+                if (n === files.length) {
+                    console.log('Last file loaded');
+                    dfd.resolve();
+                }
+            };
+            fileReader.onerror = function () {
+                swal({title: 'Oups!', text: 'An error occured while trying to read your file.', type: 'warning'});
+            };
+
+            if (options.cancelSelector) {
+                $(options.cancelSelector).on('click', function () {
+                    fileReader.abort();
+                });
+            }
+
+        });
+
+        return dfd;
+
+    };
+
+
+
+    /**
+    * Add a .disabled class to unsupported inputs
+    * @public
+    */
+    var disableUnsupported = function () {
+
+        // Disable file inputs if they are not supported
+        if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
+            $('input[type="file"]').addClass('disabled');
+            console.warn('The File APIs are not fully supported by your browser.');
         }
 
-    });
-
-    return dfd;
-
-};
+    };
 
 
 
-/**
-* Add a .disabled class to unsupported inputs
-* @public
-*/
-var disableUnsupported = function () {
+    /**
+    * Prevent URL hash display with internal links
+    * @public
+    * @param {String} [selector='body'] - Container selector
+    */
+    var hideHashOnClick = function (selector) {
 
-    // Disable file inputs if they are not supported
-    if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
-        $('input[type="file"]').addClass('disabled');
-        console.warn('The File APIs are not fully supported by your browser.');
+        var $container = $(selector || 'body');
+
+        if ($container) {
+            $container.on('click', 'a[href^="#"]', function () {
+                window.location.hash = '';
+                /*var hash = e.currentTarget.hash.replace('#', '');
+                if(hash !== '') {
+                window.location.hash = '';
+                console.log('URL hash hidden', e.currentTarget.hash);
+            }*/
+        });
     }
-
-};
-
-
-
-/**
-* Prevent URL hash display with internal links
-* @public
-* @param {String} [selector='body'] - Container selector
-*/
-var hideHashOnClick = function (selector) {
-
-    var $container = $(selector || 'body');
-
-    if ($container) {
-        $container.on('click', 'a[href^="#"]', function () {
-            window.location.hash = '';
-            /*var hash = e.currentTarget.hash.replace('#', '');
-            if(hash !== '') {
-            window.location.hash = '';
-            console.log('URL hash hidden', e.currentTarget.hash);
-        }*/
-    });
-}
 
 };
 
@@ -965,6 +887,9 @@ var init = function (options) {
         // Try to define user language then populate select input
         setUserLanguage();
 
+        // Add a disabled class to unsuported field types
+        disableUnsupported();
+
         // Save input values to a data attribute and watch the "live-reset-all" button
         if (settings.inputReset) {
             fixInputValues();
@@ -986,12 +911,9 @@ var init = function (options) {
             hideHashOnClick();
         }
 
-        // Add a disabled class to unsuported field types
-        disableUnsupported();
-
-        // Scroll to internal link
-        if (settings.scrollTo) {
-            scrollTo();
+        // Smooth scroll when user click internal links
+        if (settings.smoothScroll) {
+            smoothScroll();
         }
 
         // A simple parallax function
@@ -1020,7 +942,6 @@ return {
     //loadWebFonts: loadWebFonts,
     //parallax: parallax,
     //resetButton: resetButton,
-    //scrollTo: scrollTo,
     storeInputChanges: storeInputChanges,
     basil: basil,
     getInputType: getInputType,
@@ -1033,6 +954,7 @@ return {
     resetInputValues: resetInputValues,
     setInputValue: setInputValue,
     setUserLanguage: setUserLanguage,
+    smoothScroll: smoothScroll,
     watchInputResetButton: watchInputResetButton
 };
 
